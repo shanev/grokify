@@ -5,9 +5,10 @@
 - Goals: maximize match accuracy, keep page latency low, guarantee safe fallbacks to Wikipedia, and preserve an auditable loop for manual curation.
 
 ## Components
-- **Dump Ingestion Service**: Schedules and downloads Wikipedia and Grokipedia dumps, tracks version metadata, and queues parse jobs.
+- **Dump Ingestion Service**: Schedules and downloads Wikipedia dumps, tracks version metadata, and queues parse jobs.
+- **Grokipedia Crawl Service**: Incrementally harvests Grokipedia content via public APIs, sitemaps, or controlled scraping when no official dump exists; snapshots metadata and change history.
 - **Parsing & Normalization Workers**: Extract canonical titles, redirects, disambiguation pages, and text snippets; emit normalized `wikipedia_slug` records.
-- **Grokipedia Catalog Service**: Mirrors Grokipedia sitemap/API data, normalizes slugs, summaries, and categories for matching.
+- **Grokipedia Catalog Service**: Consolidates crawl results, normalizes slugs, summaries, and categories, and de-duplicates redirects for matching.
 - **Rule-based Matcher**: Applies deterministic rules (slug normalization, redirect resolution, namespace filtering) to produce high-confidence direct mappings.
 - **Embedding Generator**: Produces vector representations for Wikipedia snippets and Grokipedia pages; writes vectors to the index keyed by stable hash IDs.
 - **Semantic Matcher**: Runs nearest-neighbor lookups against the vector index, merges candidates with rule outputs, and assigns confidence scores.
@@ -25,7 +26,7 @@
 
 ```mermaid
 flowchart TD
-    A[Dump Ingestion] --> B[Parsing & Normalization]
+    A[Wikipedia Dump Ingestion] --> B[Parsing & Normalization]
     B --> C[Rule-based Matcher]
     B --> D[Embedding Generator]
     D --> E[Vector Index]
@@ -39,10 +40,14 @@ flowchart TD
     J --> K[Manual Override Console]
     K --> H
     H --> L[Versioned Mapping Snapshot]
+    M[Grokipedia Crawl Service] --> N[Grokipedia Catalog Service]
+    N --> D
+    N --> F
 ```
 
 ### Offline Processing Notes
-- Run ingestion and parsing nightly (or more frequently) to capture redirects, new pages, and title changes.
+- Run Wikipedia dumps through ingestion and parsing nightly (or more frequently) to capture redirects, new pages, and title changes.
+- Crawl Grokipedia continuously (API polling, sitemap monitoring, or rate-limited scraping) and snapshot deltas into the catalog service.
 - Store vector embeddings in a scalable index (FAISS, ScaNN, or pgvector) to support sub-millisecond candidate retrieval.
 - Merge rule matches and semantic matches before LLM review to minimize expensive validations.
 - Persist manual overrides with provenance and versioning; snapshots are published to object storage for fast distribution.
