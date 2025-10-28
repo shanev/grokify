@@ -50,7 +50,7 @@ function IndexPopup() {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>Grokipedia</h2>
+        <h2 style={styles.title}>Grokify</h2>
         <p style={styles.subtitle}>Wikipedia → Grokipedia Link Replacer</p>
       </div>
 

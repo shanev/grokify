@@ -1,4 +1,18 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# Grokify
+
+Automatically replace Wikipedia links with Grokipedia across the web.
+
+This is a [Plasmo extension](https://docs.plasmo.com/) project that replaces all English Wikipedia links on any webpage with their Grokipedia equivalents.
+
+## Features
+
+- Replaces all Wikipedia links with Grokipedia links
+- Handles relative and absolute URLs
+- Supports mobile Wikipedia links
+- Strips Wikipedia-specific query parameters
+- Preserves section anchors (#)
+- Toggle on/off via popup
+- Shows count of replaced links
 
 ## Getting Started
 

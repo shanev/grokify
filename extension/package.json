@@ -1,8 +1,8 @@
 {
-  "name": "extension",
-  "displayName": "Extension",
+  "name": "grokify",
+  "displayName": "Grokify",
   "version": "0.0.1",
-  "description": "Replace Wikipedia with Grokipedia",
+  "description": "Automatically replace Wikipedia links with Grokipedia",
   "author": "shanev@gmail.com",
   "scripts": {
     "dev": "plasmo dev",
