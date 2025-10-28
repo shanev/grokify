@@ -172,13 +172,3 @@ if (document.readyState === "loading") {
 } else {
   init()
 }
-
-// Listen for storage changes (when user toggles the extension)
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === "sync" && changes.enabled) {
-    if (changes.enabled.newValue === true) {
-      // Re-initialize if enabled
-      location.reload()
-    }
-  }
-})

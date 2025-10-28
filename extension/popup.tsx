@@ -37,6 +37,12 @@ function IndexPopup() {
 
     // Save to storage
     chrome.storage.sync.set({ enabled: newEnabled })
+
+    // Reload the active tab to apply changes
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+    if (tabs[0]?.id) {
+      chrome.tabs.reload(tabs[0].id)
+    }
   }
 
   if (loading) {
