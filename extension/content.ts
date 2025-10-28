@@ -64,13 +64,26 @@ function replaceWikipediaLinks(container: Document | Element = document) {
     } else if (indexPhpMatch) {
       // Decode the title parameter (it's often URL-encoded)
       articleName = decodeURIComponent(indexPhpMatch[1])
-      suffix = "" // Ignore other query params for index.php links
+      suffix = ""
     } else if (relativeIndexPhpMatch) {
       articleName = decodeURIComponent(relativeIndexPhpMatch[1])
       suffix = ""
     } else if (relativeMatch) {
       articleName = relativeMatch[1]
       suffix = relativeMatch[2] || ""
+    }
+
+    // Strip Wikipedia query parameters, keep only hash fragments
+    // Extract only the fragment (#section) and discard query params (?oldid=123)
+    if (suffix) {
+      const hashIndex = suffix.indexOf("#")
+      if (hashIndex !== -1) {
+        // Keep everything from # onwards
+        suffix = suffix.substring(hashIndex)
+      } else if (suffix.startsWith("?")) {
+        // It's only query params, strip them
+        suffix = ""
+      }
     }
 
     // If we found a Wikipedia link, replace it
