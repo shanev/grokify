@@ -9,33 +9,67 @@ let replacementCount = 0
 
 // Function to replace Wikipedia links with Grokipedia links
 function replaceWikipediaLinks(container: Document | Element = document) {
-  // Find all anchor tags with Wikipedia links
-  const links = container.querySelectorAll<HTMLAnchorElement>(
-    'a[href*="en.wikipedia.org/wiki/"]'
-  )
+  // Find all anchor tags
+  const links = container.querySelectorAll<HTMLAnchorElement>("a[href]")
 
   links.forEach((link) => {
+    // Skip if already processed
+    if (link.dataset.grokified) return
+
     const href = link.getAttribute("href")
     if (!href) return
 
-    // Check if it's a Wikipedia link
-    const wikiMatch = href.match(
+    let articleName = ""
+    let suffix = ""
+
+    // Check if it's an absolute Wikipedia link (desktop)
+    const absoluteMatch = href.match(
       /https?:\/\/en\.wikipedia\.org\/wiki\/([^#?]+)([#?].*)?/
     )
 
-    if (wikiMatch) {
-      const articleName = wikiMatch[1]
-      const suffix = wikiMatch[2] || "" // Preserve hash/query params if any
+    // Check if it's a mobile Wikipedia link
+    const mobileMatch = href.match(
+      /https?:\/\/(en\.)?m\.wikipedia\.org\/wiki\/([^#?]+)([#?].*)?/
+    )
+
+    // Check if it's a relative Wikipedia link (starts with /wiki/)
+    const relativeMatch = href.match(/^\/wiki\/([^#?]+)([#?].*)?$/)
+
+    // Check if it's an anchor-only link (starts with #) - skip these
+    if (href.startsWith("#")) {
+      return
+    }
+
+    if (absoluteMatch) {
+      articleName = absoluteMatch[1]
+      suffix = absoluteMatch[2] || ""
+    } else if (mobileMatch) {
+      articleName = mobileMatch[2]
+      suffix = mobileMatch[3] || ""
+    } else if (relativeMatch) {
+      articleName = relativeMatch[1]
+      suffix = relativeMatch[2] || ""
+    }
+
+    // If we found a Wikipedia link, replace it
+    if (articleName) {
+      // Skip special pages (e.g., File:, Special:, Help:, etc.)
+      if (
+        articleName.startsWith("Special:") ||
+        articleName.startsWith("File:") ||
+        articleName.startsWith("Help:") ||
+        articleName.startsWith("Wikipedia:") ||
+        articleName.startsWith("Talk:") ||
+        articleName.startsWith("User:")
+      ) {
+        return
+      }
 
       // Replace with Grokipedia URL
       const newUrl = `https://grokipedia.com/page/${articleName}${suffix}`
       link.setAttribute("href", newUrl)
-
-      // Add a visual indicator (optional - small badge)
-      if (!link.dataset.grokified) {
-        link.dataset.grokified = "true"
-        replacementCount++
-      }
+      link.dataset.grokified = "true"
+      replacementCount++
     }
   })
 }
