@@ -19,26 +19,41 @@ function replaceWikipediaLinks(container: Document | Element = document) {
     const href = link.getAttribute("href")
     if (!href) return
 
+    // Skip if it's already a Grokipedia link
+    if (href.includes("grokipedia.com")) {
+      return
+    }
+
+    // Skip anchor-only links (starts with #)
+    if (href.startsWith("#")) {
+      return
+    }
+
     let articleName = ""
     let suffix = ""
 
-    // Check if it's an absolute Wikipedia link (desktop)
+    // Check if it's an absolute Wikipedia link (desktop) - English only
     const absoluteMatch = href.match(
       /https?:\/\/en\.wikipedia\.org\/wiki\/([^#?]+)([#?].*)?/
     )
 
-    // Check if it's a mobile Wikipedia link
+    // Check if it's a mobile Wikipedia link - English only
     const mobileMatch = href.match(
       /https?:\/\/(en\.)?m\.wikipedia\.org\/wiki\/([^#?]+)([#?].*)?/
     )
 
+    // Check if it's the /w/index.php?title= format - English only
+    const indexPhpMatch = href.match(
+      /https?:\/\/en\.wikipedia\.org\/w\/index\.php\?.*[&?]title=([^&#]+)/
+    )
+
+    // Check if it's a relative /w/index.php?title= format
+    const relativeIndexPhpMatch = href.match(
+      /^\/w\/index\.php\?.*[&?]title=([^&#]+)/
+    )
+
     // Check if it's a relative Wikipedia link (starts with /wiki/)
     const relativeMatch = href.match(/^\/wiki\/([^#?]+)([#?].*)?$/)
-
-    // Check if it's an anchor-only link (starts with #) - skip these
-    if (href.startsWith("#")) {
-      return
-    }
 
     if (absoluteMatch) {
       articleName = absoluteMatch[1]
@@ -46,6 +61,13 @@ function replaceWikipediaLinks(container: Document | Element = document) {
     } else if (mobileMatch) {
       articleName = mobileMatch[2]
       suffix = mobileMatch[3] || ""
+    } else if (indexPhpMatch) {
+      // Decode the title parameter (it's often URL-encoded)
+      articleName = decodeURIComponent(indexPhpMatch[1])
+      suffix = "" // Ignore other query params for index.php links
+    } else if (relativeIndexPhpMatch) {
+      articleName = decodeURIComponent(relativeIndexPhpMatch[1])
+      suffix = ""
     } else if (relativeMatch) {
       articleName = relativeMatch[1]
       suffix = relativeMatch[2] || ""
@@ -53,20 +75,31 @@ function replaceWikipediaLinks(container: Document | Element = document) {
 
     // If we found a Wikipedia link, replace it
     if (articleName) {
-      // Skip special pages (e.g., File:, Special:, Help:, etc.)
+      // Skip special pages, /w/ paths, and non-article namespaces
       if (
         articleName.startsWith("Special:") ||
         articleName.startsWith("File:") ||
         articleName.startsWith("Help:") ||
         articleName.startsWith("Wikipedia:") ||
         articleName.startsWith("Talk:") ||
-        articleName.startsWith("User:")
+        articleName.startsWith("User:") ||
+        articleName.startsWith("Category:") ||
+        articleName.startsWith("Portal:") ||
+        articleName.startsWith("Template:") ||
+        articleName.startsWith("MediaWiki:")
       ) {
         return
       }
 
+      // Properly encode the article name for the URL
+      // Decode first to normalize, then encode to ensure proper format
+      const normalizedArticleName = decodeURIComponent(articleName)
+      const encodedArticleName = encodeURIComponent(normalizedArticleName)
+        .replace(/%20/g, "_") // Wikipedia uses underscores for spaces
+        .replace(/%2F/g, "/") // Don't encode forward slashes
+
       // Replace with Grokipedia URL
-      const newUrl = `https://grokipedia.com/page/${articleName}${suffix}`
+      const newUrl = `https://grokipedia.com/page/${encodedArticleName}${suffix}`
       link.setAttribute("href", newUrl)
       link.dataset.grokified = "true"
       replacementCount++
