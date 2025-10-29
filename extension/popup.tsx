@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import packageJson from "../package.json"
 
 function IndexPopup() {
   const [enabled, setEnabled] = useState(true)
@@ -108,6 +109,7 @@ function IndexPopup() {
           style={styles.link}>
           Visit Grokipedia →
         </a>
+        <p style={styles.version}>v{packageJson.version}</p>
       </div>
     </div>
   )
@@ -223,6 +225,12 @@ const styles = {
     fontSize: "14px",
     fontWeight: "500",
     transition: "color 0.2s"
+  },
+  version: {
+    margin: "8px 0 0 0",
+    fontSize: "11px",
+    color: "#999",
+    fontWeight: "400"
   }
 }
 
