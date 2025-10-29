@@ -5,7 +5,18 @@ export const config: PlasmoCSConfig = {
   all_frames: true
 }
 
-let replacementCount = 0
+const GROKIFIED_ATTR = "grokified"
+
+const getReplacedLinkCount = () =>
+  document.querySelectorAll<HTMLAnchorElement>(
+    `a[data-${GROKIFIED_ATTR}="true"]`
+  ).length
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "getCount") {
+    sendResponse({ count: getReplacedLinkCount() })
+  }
+})
 
 // Function to replace Wikipedia links with Grokipedia links
 function replaceWikipediaLinks(container: Document | Element = document) {
@@ -14,7 +25,7 @@ function replaceWikipediaLinks(container: Document | Element = document) {
 
   links.forEach((link) => {
     // Skip if already processed
-    if (link.dataset.grokified) return
+    if (link.dataset[GROKIFIED_ATTR]) return
 
     const href = link.getAttribute("href")
     if (!href) return
@@ -114,8 +125,7 @@ function replaceWikipediaLinks(container: Document | Element = document) {
       // Replace with Grokipedia URL
       const newUrl = `https://grokipedia.com/page/${encodedArticleName}${suffix}`
       link.setAttribute("href", newUrl)
-      link.dataset.grokified = "true"
-      replacementCount++
+      link.dataset[GROKIFIED_ATTR] = "true"
     }
   })
 }
@@ -158,13 +168,7 @@ async function init() {
     subtree: true
   })
 
-  // Listen for messages from popup to send current count
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "getCount") {
-      sendResponse({ count: replacementCount })
-      return true // Indicate we're sending a response
-    }
-  })
+  // Listener registered at top-level to ensure popup queries always respond
 }
 
 // Run when DOM is ready
