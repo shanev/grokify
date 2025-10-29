@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Grokify</title>
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 60px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .last-updated {
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 0.9rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #cccccc;
+            font-size: 1.1rem;
+        }
+
+        ul {
+            margin-bottom: 20px;
+            margin-left: 30px;
+            color: #cccccc;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #45a049;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 30px;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            color: #4CAF50;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last updated: October 28, 2024</p>
+
+        <h2>Overview</h2>
+        <p>
+            Grokify ("the Extension") is committed to protecting your privacy. This privacy policy explains our data practices for the Grokify browser extension.
+        </p>
+
+        <h2>Data Collection</h2>
+        <p>
+            <strong>Grokify does not collect, store, or transmit any personal data.</strong>
+        </p>
+        <p>
+            The Extension operates entirely within your browser and does not:
+        </p>
+        <ul>
+            <li>Collect browsing history</li>
+            <li>Track your activity</li>
+            <li>Store personal information</li>
+            <li>Send data to external servers</li>
+            <li>Use cookies or tracking technologies</li>
+            <li>Share data with third parties</li>
+        </ul>
+
+        <h2>Local Storage</h2>
+        <p>
+            The Extension uses Chrome's local storage API (<code>chrome.storage.sync</code>) to save a single preference:
+        </p>
+        <ul>
+            <li><strong>Enabled/Disabled state</strong>: Whether you have the extension turned on or off</li>
+        </ul>
+        <p>
+            This preference is stored locally on your device and synced across your Chrome browsers if you're signed into Chrome. This data never leaves Google's infrastructure and is not accessible to us.
+        </p>
+
+        <h2>Permissions Explanation</h2>
+        <p>
+            The Extension requests the following permissions:
+        </p>
+        <ul>
+            <li><strong>storage</strong>: To save your enabled/disabled preference locally</li>
+            <li><strong>activeTab</strong>: To reload the current tab when you toggle the extension on or off</li>
+            <li><strong>host permissions (https://*/)</strong>: To scan web pages for Wikipedia links and replace them with Grokipedia links</li>
+        </ul>
+        <p>
+            All processing happens locally in your browser. No data is transmitted to external servers.
+        </p>
+
+        <h2>Third-Party Services</h2>
+        <p>
+            The Extension does not use any third-party analytics, advertising, or tracking services.
+        </p>
+
+        <h2>Changes to Links</h2>
+        <p>
+            The Extension modifies Wikipedia links on web pages to point to Grokipedia.com. This modification happens entirely in your browser and does not involve sending any data to external servers.
+        </p>
+
+        <h2>Updates to This Privacy Policy</h2>
+        <p>
+            We may update this privacy policy from time to time. Any changes will be posted on this page with an updated "Last updated" date.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+            If you have questions about this privacy policy, please contact:
+        </p>
+        <ul>
+            <li>X (Twitter): <a href="https://x.com/shan3v" target="_blank">@shan3v</a></li>
+            <li>Website: <a href="https://grokify.app">grokify.app</a></li>
+        </ul>
+
+        <a href="index.html" class="back-link">← Back to Grokify</a>
+    </div>
+</body>
+
+</html>
