@@ -14,8 +14,13 @@ const getReplacedLinkCount = () =>
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getCount") {
+    if (window.top !== window) {
+      return false
+    }
     sendResponse({ count: getReplacedLinkCount() })
+    return true
   }
+  return false
 })
 
 // Function to replace Wikipedia links with Grokipedia links

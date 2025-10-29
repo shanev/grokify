@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import packageJson from "../package.json"
+import packageJson from "./package.json"
 
 function IndexPopup() {
   const [enabled, setEnabled] = useState(true)
