@@ -18,7 +18,7 @@ function IndexPopup() {
         chrome.tabs
           .sendMessage(tabs[0].id, { action: "getCount" })
           .then((response) => {
-            if (response?.count) {
+            if (response && typeof response.count === 'number') {
               setLinkCount(response.count)
             }
           })

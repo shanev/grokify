@@ -162,6 +162,7 @@ async function init() {
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getCount") {
       sendResponse({ count: replacementCount })
+      return true // Indicate we're sending a response
     }
   })
 }
