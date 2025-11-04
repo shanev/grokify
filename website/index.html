@@ -99,48 +99,107 @@
             box-shadow: 0 15px 40px rgba(76, 175, 80, 0.6);
         }
 
-        /* Installation Section */
-        .installation {
-            padding: 80px 0;
+        /* Features Section */
+        .features {
+            padding: 60px 0 80px;
         }
 
-        .installation h2 {
+        .features h2 {
             text-align: center;
             font-size: 2.5rem;
             margin-bottom: 60px;
         }
 
-        .install-method {
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            padding: 40px;
-            margin-bottom: 30px;
+            padding: 30px;
+            transition: all 0.3s ease;
         }
 
-        .install-method h3 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: #4CAF50;
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(76, 175, 80, 0.3);
+            transform: translateY(-5px);
         }
 
-        .install-method ol {
-            list-style-position: inside;
-            color: #cccccc;
-            font-size: 1.1rem;
-            line-height: 2;
-        }
-
-        .install-method ol li {
+        .feature-icon {
+            font-size: 3rem;
             margin-bottom: 15px;
+            display: block;
         }
 
-        .install-method code {
-            background: rgba(76, 175, 80, 0.1);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
             color: #4CAF50;
+        }
+
+        .feature-card p {
+            color: #cccccc;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        /* How it Works Section */
+        .how-it-works {
+            padding: 60px 0 80px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .how-it-works h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .step {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .step p {
+            color: #cccccc;
+            font-size: 1.05rem;
+            line-height: 1.6;
         }
 
         /* Footer */
@@ -169,6 +228,24 @@
             .tagline {
                 font-size: 1.2rem;
             }
+
+            .features h2,
+            .how-it-works h2 {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .step {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -182,33 +259,58 @@
             <h1>Grokify</h1>
             <p class="tagline">Automatically replace Wikipedia links with Grokipedia</p>
             <div>
-                <a href="grokify-extension.zip" class="cta-button" download>Download Extension</a>
+                <a href="https://chromewebstore.google.com/detail/mgmilhggbecipldajclmdlndcamjjmia" class="cta-button" target="_blank">Install from Chrome Web Store</a>
             </div>
         </div>
     </header>
 
-    <section id="install" class="installation">
+    <section class="features">
         <div class="container">
-            <h2>Installation</h2>
-
-            <div class="install-method">
-                <h3>📦 Chrome Web Store (Coming Soon)</h3>
-                <p style="color: #cccccc; font-size: 1.1rem;">The extension will be available on the Chrome Web Store
-                    soon. For now, you can install it manually below.</p>
+            <h2>Why Grokify?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3>Instant Replacement</h3>
+                    <p>Automatically converts all Wikipedia links to Grokipedia as you browse, with zero manual effort required.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎯</span>
+                    <h3>Works Everywhere</h3>
+                    <p>Transforms links across all websites - social media, search results, news sites, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Privacy First</h3>
+                    <p>Runs entirely in your browser. No data collection, no tracking, no external servers.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🚀</span>
+                    <h3>Lightweight</h3>
+                    <p>Minimal resource usage with no impact on browsing performance or page load times.</p>
+                </div>
             </div>
+        </div>
+    </section>
 
-            <div class="install-method">
-                <h3>⬇️ Download & Install</h3>
-                <ol>
-                    <li>Download the extension: <a href="grokify-extension.zip"
-                            style="color: #4CAF50; font-weight: 600;" download>grokify-extension.zip</a></li>
-                    <li>Extract the ZIP file to a folder on your computer</li>
-                    <li>Open Chrome and go to <code>chrome://extensions/</code></li>
-                    <li>Enable "Developer mode" (toggle in top right corner)</li>
-                    <li>Click "Load unpacked"</li>
-                    <li>Select the extracted folder</li>
-                    <li>Done! All Wikipedia links will now point to Grokipedia</li>
-                </ol>
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Install Extension</h3>
+                    <p>Add Grokify to Chrome with one click from the Chrome Web Store</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Browse Normally</h3>
+                    <p>Visit any website as you normally would - no setup required</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Links Updated</h3>
+                    <p>Wikipedia links automatically redirect to Grokipedia seamlessly</p>
+                </div>
             </div>
         </div>
     </section>
