@@ -3,7 +3,7 @@
   "displayName": "Grokify",
   "version": "1.0.0",
   "description": "Automatically replace Wikipedia links with Grokipedia",
-  "author": "shanev@gmail.com",
+  "author": "shane@grokify.app",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
