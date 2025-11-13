@@ -43,7 +43,7 @@
 - [ ] Debounce MutationObserver callbacks
 
 ### Distribution
-- [ ] Publish to Chrome Web Store
+- [x] Publish to Chrome Web Store
 - [ ] Firefox Add-ons support
 - [ ] Edge Add-ons support
 - [ ] Safari extension support
