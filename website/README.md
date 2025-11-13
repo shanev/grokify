@@ -21,7 +21,7 @@ Coming soon: https://grokify.app
    - Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
    - Select "Workers & Pages" from the sidebar
    - Click "Create application" → "Pages" → "Connect to Git"
-   - Select your repository: `shanev/groki`
+   - Select your repository: `shanev/grokify`
    - Configure build settings:
      - **Production branch**: `main`
      - **Build output directory**: `website`
