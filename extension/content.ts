@@ -1,11 +1,14 @@
 import type { PlasmoCSConfig } from "plasmo"
 
+import { countryToFlag } from "./utils/countries"
+
 export const config: PlasmoCSConfig = {
   matches: ["https://*/*"],
   all_frames: true
 }
 
 const GROKIFIED_ATTR = "grokified"
+const GROKIFIED_LOCATION_ATTR = "grokified-location"
 
 const getReplacedLinkCount = () =>
   document.querySelectorAll<HTMLAnchorElement>(
@@ -135,6 +138,115 @@ function replaceWikipediaLinks(container: Document | Element = document) {
   })
 }
 
+// --- X (Twitter) Logic ---
+
+function isX() {
+  return (
+    window.location.hostname.includes("x.com") ||
+    window.location.hostname.includes("twitter.com")
+  )
+}
+
+function getXUsername() {
+  if (!isX()) return null
+  const path = window.location.pathname
+  const parts = path.split("/").filter(Boolean)
+  if (parts.length === 0) return null
+
+  const potentialUsername = parts[0]
+  // List of common reserved words on X
+  const reserved = [
+    "home",
+    "explore",
+    "notifications",
+    "messages",
+    "search",
+    "settings",
+    "i",
+    "compose",
+    "tos",
+    "privacy",
+    "jobs",
+    "about"
+  ]
+  if (reserved.includes(potentialUsername)) return null
+
+  return potentialUsername
+}
+
+async function handleXProfile() {
+  if (!isX()) return
+
+  const username = getXUsername()
+  if (!username) return
+
+  // Try to find the user name element
+  const userNameElement = document.querySelector('[data-testid="UserName"]')
+  if (!userNameElement) return
+
+  // Check if already processed
+  if (userNameElement.getAttribute(`data-${GROKIFIED_LOCATION_ATTR}`)) return
+
+  // Mark as processing
+  userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "processing")
+
+  try {
+    const response = await fetch(
+      `https://${window.location.hostname}/${username}/about`
+    )
+    const text = await response.text()
+
+    let foundCountry = null
+    // Search for country name in the response text
+    // Optimization: iterate through keys
+    for (const country of Object.keys(countryToFlag)) {
+      if (text.includes(country)) {
+        foundCountry = country
+        // If we find a "Based in" match, break immediately as it's high confidence
+        if (
+          text.includes(`Based in ${country}`) ||
+          text.includes(`Based in: ${country}`)
+        ) {
+          break
+        }
+      }
+    }
+
+    if (foundCountry) {
+      const flag = countryToFlag[foundCountry]
+      const span = document.createElement("span")
+      span.textContent = ` ${flag}`
+      span.title = `Based in ${foundCountry}`
+      span.style.marginLeft = "4px"
+
+      // Find the name text node to append next to
+      // userNameElement usually has nested divs. We look for the span that holds the name.
+      // The handle (@username) is usually in a separate div below or next to it.
+      // We want the one that DOES NOT start with @
+
+      const spans = Array.from(userNameElement.querySelectorAll("span"))
+      const nameSpan = spans.find(
+        (s) =>
+          s.textContent &&
+          s.textContent.trim().length > 0 &&
+          !s.textContent.includes("@")
+      )
+
+      if (nameSpan) {
+        nameSpan.appendChild(span)
+      } else {
+        userNameElement.appendChild(span)
+      }
+    }
+
+    userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "true")
+  } catch (e) {
+    // console.error("Grokify: Failed to fetch X location", e)
+    // Fail silently or allow retry? For now mark as failed so we don't loop
+    userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "failed")
+  }
+}
+
 // Function to check if extension is enabled
 async function isExtensionEnabled(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -156,6 +268,11 @@ async function init() {
   // Replace existing links on page load
   replaceWikipediaLinks()
 
+  // Handle X Profile if applicable
+  if (isX()) {
+    handleXProfile()
+  }
+
   // Watch for dynamically added links (SPAs, infinite scroll, etc.)
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
@@ -165,6 +282,11 @@ async function init() {
         }
       })
     })
+
+    // Check for X profile updates
+    if (isX()) {
+      handleXProfile()
+    }
   })
 
   // Start observing the document for changes
