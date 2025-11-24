@@ -2,6 +2,11 @@
 
 Grokify is a browser extension that rewrites Wikipedia links to their Grokipedia equivalents.
 
+## New Feature: X (Twitter) Flags
+Automatically displays the verified "Account based in" country flag on X (Twitter) profiles.
+
+![X Profile Flag Example](website/assets/greg1.png)
+
 ## Repository Layout
 - `extension/` – Chrome/Safari extension source plus release tooling.
 - `website/` – Static landing page, includes downloadable ZIP of the extension.
