@@ -7,6 +7,7 @@ export const config: PlasmoCSConfig = {
 
 const GROKIFIED_ATTR = "grokified"
 const GROKIFIED_LOCATION_ATTR = "grokified-location"
+const MAX_CACHE_SIZE = 2000
 
 // Global cache to track processed usernames and their locations
 // Map<username, countryName | null>
@@ -481,6 +482,10 @@ async function handleXProfile() {
   // CACHE CHECK: Use cached result if available
   if (grokifyUserCache.has(username)) {
       finalCountry = grokifyUserCache.get(username) ?? null
+      
+      // LRU Refresh: Delete and re-add to move to end (most recently used)
+      grokifyUserCache.delete(username)
+      grokifyUserCache.set(username, finalCountry)
   } else {
       // DATA FETCH: Only fetch if not in cache
       try {
@@ -518,6 +523,11 @@ async function handleXProfile() {
       }
       
       // CACHE SET: Store result (string or null) to prevent future fetches/loops
+      // Enforce Max Size (Simple LRU)
+      if (grokifyUserCache.size >= MAX_CACHE_SIZE) {
+          const oldestKey = grokifyUserCache.keys().next().value
+          grokifyUserCache.delete(oldestKey)
+      }
       grokifyUserCache.set(username, finalCountry)
   }
 
