@@ -13,6 +13,7 @@ This is a [Plasmo extension](https://docs.plasmo.com/) project that replaces all
 - Preserves section anchors (#)
 - Toggle on/off via popup
 - Shows count of replaced links
+- **Displays verified country flag on X (Twitter) profiles**
 
 ## Getting Started
 
