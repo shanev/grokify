@@ -8,8 +8,9 @@ export const config: PlasmoCSConfig = {
 const GROKIFIED_ATTR = "grokified"
 const GROKIFIED_LOCATION_ATTR = "grokified-location"
 
-// Global set to track processed usernames and prevent infinite loops/rate limits
-const grokifyProcessedUsers = new Set<string>()
+// Global cache to track processed usernames and their locations
+// Map<username, countryName | null>
+const grokifyUserCache = new Map<string, string | null>()
 
 const countryToFlag: Record<string, string> = {
   "Afghanistan": "🇦🇫",
@@ -466,10 +467,6 @@ async function handleXProfile() {
   const username = getXUsername()
   if (!username) return
 
-  // MEMORY GUARD: If we already successfully processed this user this session, skip
-  // This prevents loop if DOM attribute is cleared or missed
-  if (grokifyProcessedUsers.has(username)) return
-
   const userNameElement = document.querySelector('[data-testid="UserName"]')
   if (!userNameElement) return
 
@@ -479,83 +476,76 @@ async function handleXProfile() {
   // Set processing state immediately
   userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "processing")
 
-  try {
-    let finalCountry = null
+  let finalCountry: string | null = null
 
-    // Strategy: Direct GraphQL Fetch for AboutAccountQuery
-    try {
-      const queryId = "XRqGa7EeokUU5kppkh13EA"
-      const variables = { screenName: username }
-      
-      const encodedVariables = encodeURIComponent(JSON.stringify(variables))
-      const graphQLUrl = `https://${window.location.hostname}/i/api/graphql/${queryId}/AboutAccountQuery?variables=${encodedVariables}`
-      
-      const csrfToken = getCsrfToken()
+  // CACHE CHECK: Use cached result if available
+  if (grokifyUserCache.has(username)) {
+      finalCountry = grokifyUserCache.get(username) ?? null
+  } else {
+      // DATA FETCH: Only fetch if not in cache
+      try {
+        // Strategy: Direct GraphQL Fetch for AboutAccountQuery
+        const queryId = "XRqGa7EeokUU5kppkh13EA"
+        const variables = { screenName: username }
+        
+        const encodedVariables = encodeURIComponent(JSON.stringify(variables))
+        const graphQLUrl = `https://${window.location.hostname}/i/api/graphql/${queryId}/AboutAccountQuery?variables=${encodedVariables}`
+        
+        const csrfToken = getCsrfToken()
 
-      const response = await fetch(graphQLUrl, {
-        credentials: "include",
-        headers: {
-          "x-twitter-active-user": "yes",
-          "x-csrf-token": csrfToken || "",
-          "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA" 
-        }
-      })
-      
-      if (response.ok) {
-          const data = await response.json()
-          const accountBasedIn = data?.data?.user_result_by_screen_name?.result?.about_profile?.account_based_in
-          
-          if (accountBasedIn) {
-            const matches = findCountryInText(accountBasedIn)
-            if (matches.length > 0) {
-              finalCountry = matches[0]
-            }
+        const response = await fetch(graphQLUrl, {
+          credentials: "include",
+          headers: {
+            "x-twitter-active-user": "yes",
+            "x-csrf-token": csrfToken || "",
+            "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA" 
           }
-      } else if (response.status === 429) {
-          // If rate limited, mark as done so we don't hammer it
-          grokifyProcessedUsers.add(username)
-          userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "rate_limited")
-          return 
+        })
+        
+        if (response.ok) {
+            const data = await response.json()
+            const accountBasedIn = data?.data?.user_result_by_screen_name?.result?.about_profile?.account_based_in
+            
+            if (accountBasedIn) {
+              const matches = findCountryInText(accountBasedIn)
+              if (matches.length > 0) {
+                finalCountry = matches[0]
+              }
+            }
+        }
+      } catch (e) {
+        // Silent fail, finalCountry remains null
       }
       
-    } catch (e) {
-      // Silent fail
-    }
+      // CACHE SET: Store result (string or null) to prevent future fetches/loops
+      grokifyUserCache.set(username, finalCountry)
+  }
 
-    if (finalCountry) {
-      const flag = countryToFlag[finalCountry]
-      const span = document.createElement("span")
-      span.textContent = ` ${flag}`
-      span.title = `Based in ${finalCountry}`
-      span.style.marginLeft = "4px"
+  if (finalCountry) {
+    const flag = countryToFlag[finalCountry]
+    const span = document.createElement("span")
+    span.textContent = ` ${flag}`
+    span.title = `Based in ${finalCountry}`
+    span.style.marginLeft = "4px"
 
-      const spans = Array.from(userNameElement.querySelectorAll("span"))
-      const nameSpan = spans.find(
-        (s) =>
-          s.textContent &&
-          s.textContent.trim().length > 0 &&
-          !s.textContent.includes("@")
-      )
+    const spans = Array.from(userNameElement.querySelectorAll("span"))
+    const nameSpan = spans.find(
+      (s) =>
+        s.textContent &&
+        s.textContent.trim().length > 0 &&
+        !s.textContent.includes("@")
+    )
 
-      if (nameSpan) {
-        nameSpan.appendChild(span)
-      } else {
-        userNameElement.appendChild(span)
-      }
-      
-      // Mark success in memory
-      grokifyProcessedUsers.add(username)
-      userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "true")
+    if (nameSpan) {
+      nameSpan.appendChild(span)
     } else {
-      // No country found - mark as done to prevent retry loop
-      grokifyProcessedUsers.add(username)
-      userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "no_data")
+      userNameElement.appendChild(span)
     }
-
-  } catch (e) {
-    // Mark as failed but processed to prevent loop
-    grokifyProcessedUsers.add(username)
-    userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "failed")
+    
+    userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "true")
+  } else {
+    // No country found or fetch failed - mark as processed
+    userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "no_data")
   }
 }
 
