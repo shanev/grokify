@@ -1,7 +1,5 @@
 import type { PlasmoCSConfig } from "plasmo"
 
-import { countryToFlag } from "./utils/countries"
-
 export const config: PlasmoCSConfig = {
   matches: ["https://*/*"],
   all_frames: true
@@ -9,6 +7,306 @@ export const config: PlasmoCSConfig = {
 
 const GROKIFIED_ATTR = "grokified"
 const GROKIFIED_LOCATION_ATTR = "grokified-location"
+
+// Global set to track processed usernames and prevent infinite loops/rate limits
+const grokifyProcessedUsers = new Set<string>()
+
+const countryToFlag: Record<string, string> = {
+  "Afghanistan": "🇦🇫",
+  "Albania": "🇦🇱",
+  "Algeria": "🇩🇿",
+  "Andorra": "🇦🇩",
+  "Angola": "🇦🇴",
+  "Antigua and Barbuda": "🇦🇬",
+  "Argentina": "🇦🇷",
+  "Armenia": "🇦🇲",
+  "Australia": "🇦🇺",
+  "Austria": "🇦🇹",
+  "Azerbaijan": "🇦🇿",
+  "Bahamas": "🇧🇸",
+  "Bahrain": "🇧🇭",
+  "Bangladesh": "🇧🇩",
+  "Barbados": "🇧🇧",
+  "Belarus": "🇧🇾",
+  "Belgium": "🇧🇪",
+  "Belize": "🇧🇿",
+  "Benin": "🇧🇯",
+  "Bhutan": "🇧🇹",
+  "Bolivia": "🇧🇴",
+  "Bosnia and Herzegovina": "🇧🇦",
+  "Botswana": "🇧🇼",
+  "Brazil": "🇧🇷",
+  "Brunei": "🇧🇳",
+  "Bulgaria": "🇧🇬",
+  "Burkina Faso": "🇧4",
+  "Burundi": "🇧🇮",
+  "Cabo Verde": "🇨🇻",
+  "Cambodia": "🇰🇭",
+  "Cameroon": "🇨🇲",
+  "Canada": "🇨🇦",
+  "Central African Republic": "🇨🇫",
+  "Chad": "🇹🇩",
+  "Chile": "🇨🇱",
+  "China": "🇨🇳",
+  "Colombia": "🇨🇴",
+  "Comoros": "🇰🇲",
+  "Congo": "🇨🇬",
+  "Costa Rica": "🇨🇷",
+  "Croatia": "🇭🇷",
+  "Cuba": "🇨🇺",
+  "Cyprus": "🇨🇾",
+  "Czechia": "🇨🇿",
+  "Denmark": "🇩🇰",
+  "Djibouti": "🇩🇯",
+  "Dominica": "🇩🇲",
+  "Dominican Republic": "🇩🇴",
+  "Ecuador": "🇪🇨",
+  "Egypt": "🇪🇬",
+  "El Salvador": "🇸🇻",
+  "Equatorial Guinea": "🇬🇶",
+  "Eritrea": "🇪🇷",
+  "Estonia": "🇪🇪",
+  "Eswatini": "🇸🇿",
+  "Ethiopia": "🇪🇹",
+  "Fiji": "🇫🇯",
+  "Finland": "🇫🇮",
+  "France": "🇫🇷",
+  "Gabon": "🇬🇦",
+  "Gambia": "🇬🇲",
+  "Georgia": "🇬🇪",
+  "Germany": "🇩🇪",
+  "Ghana": "🇬🇭",
+  "Greece": "🇬🇷",
+  "Grenada": "🇬🇩",
+  "Guatemala": "🇬🇹",
+  "Guinea": "🇬🇳",
+  "Guinea-Bissau": "🇬🇼",
+  "Guyana": "🇬🇾",
+  "Haiti": "🇭🇹",
+  "Honduras": "🇭🇳",
+  "Hungary": "🇭🇺",
+  "Iceland": "🇮🇸",
+  "India": "🇮🇳",
+  "Indonesia": "🇮🇩",
+  "Iran": "🇮🇷",
+  "Iraq": "🇮🇶",
+  "Ireland": "🇮🇪",
+  "Israel": "🇮🇱",
+  "Italy": "🇮🇹",
+  "Jamaica": "🇯🇲",
+  "Japan": "🇯🇵",
+  "Jordan": "🇯🇴",
+  "Kazakhstan": "🇰🇿",
+  "Kenya": "🇰🇪",
+  "Kiribati": "🇰🇮",
+  "Korea, North": "🇰🇵",
+  "Korea, South": "🇰🇷",
+  "Kosovo": "🇽🇰",
+  "Kuwait": "🇰🇼",
+  "Kyrgyzstan": "🇰🇬",
+  "Laos": "🇱🇦",
+  "Latvia": "🇱🇻",
+  "Lebanon": "🇱🇧",
+  "Lesotho": "🇱🇸",
+  "Liberia": "🇱🇷",
+  "Libya": "🇱🇾",
+  "Liechtenstein": "🇱🇮",
+  "Lithuania": "🇱🇹",
+  "Luxembourg": "🇱🇺",
+  "Madagascar": "🇲🇬",
+  "Malawi": "🇲🇼",
+  "Malaysia": "🇲🇾",
+  "Maldives": "🇲🇻",
+  "Mali": "🇲🇱",
+  "Malta": "🇲🇹",
+  "Marshall Islands": "🇲🇭",
+  "Mauritania": "🇲🇷",
+  "Mauritius": "🇲🇺",
+  "Mexico": "🇲🇽",
+  "Micronesia": "🇫🇲",
+  "Moldova": "🇲🇩",
+  "Monaco": "🇲🇨",
+  "Mongolia": "🇲🇳",
+  "Montenegro": "🇲🇪",
+  "Morocco": "🇲🇦",
+  "Mozambique": "🇲🇿",
+  "Myanmar": "🇲🇲",
+  "Namibia": "🇳🇦",
+  "Nauru": "🇳🇷",
+  "Nepal": "🇳🇵",
+  "Netherlands": "🇳🇱",
+  "New Zealand": "🇳🇿",
+  "Nicaragua": "🇳🇮",
+  "Niger": "🇳🇪",
+  "Nigeria": "🇳🇬",
+  "North Macedonia": "🇲🇰",
+  "Norway": "🇳🇴",
+  "Oman": "🇴🇲",
+  "Pakistan": "🇵🇰",
+  "Palau": "🇵🇼",
+  "Palestine": "🇵🇸",
+  "Panama": "🇵🇦",
+  "Papua New Guinea": "🇵🇬",
+  "Paraguay": "🇵🇾",
+  "Peru": "🇵🇪",
+  "Philippines": "🇵🇭",
+  "Poland": "🇵🇱",
+  "Portugal": "🇵🇹",
+  "Qatar": "🇶🇦",
+  "Romania": "🇷🇴",
+  "Russia": "🇷🇺",
+  "Rwanda": "🇷🇼",
+  "Saint Kitts and Nevis": "🇰🇳",
+  "Saint Lucia": "🇱🇨",
+  "Saint Vincent and the Grenadines": "🇻🇨",
+  "Samoa": "🇼🇸",
+  "San Marino": "🇸🇲",
+  "Sao Tome and Principe": "🇸🇹",
+  "Saudi Arabia": "🇸🇦",
+  "Senegal": "🇸🇳",
+  "Serbia": "🇷🇸",
+  "Seychelles": "🇸🇨",
+  "Sierra Leone": "🇸🇱",
+  "Singapore": "🇸🇬",
+  "Slovakia": "🇸🇰",
+  "Slovenia": "🇸🇮",
+  "Solomon Islands": "🇸🇧",
+  "Somalia": "🇸🇴",
+  "South Africa": "🇿🇦",
+  "South Sudan": "🇸🇸",
+  "Spain": "🇪🇸",
+  "Sri Lanka": "🇱🇰",
+  "Sudan": "🇸🇩",
+  "Suriname": "🇸🇷",
+  "Sweden": "🇸🇪",
+  "Switzerland": "🇨🇭",
+  "Syria": "🇸🇾",
+  "Taiwan": "🇹🇼",
+  "Tajikistan": "🇹🇯",
+  "Tanzania": "🇹🇿",
+  "Thailand": "🇹🇭",
+  "Timor-Leste": "🇹🇱",
+  "Togo": "🇹🇬",
+  "Tonga": "🇹🇴",
+  "Trinidad and Tobago": "🇹🇹",
+  "Tunisia": "🇹🇳",
+  "Turkey": "🇹🇷",
+  "Turkmenistan": "🇹🇲",
+  "Tuvalu": "🇹🇻",
+  "Uganda": "🇺🇬",
+  "Ukraine": "🇺🇦",
+  "United Arab Emirates": "🇦🇪",
+  "United Kingdom": "🇬🇧",
+  "United States": "🇺🇸",
+  "Uruguay": "🇺🇾",
+  "Uzbekistan": "🇺🇿",
+  "Vanuatu": "🇻🇺",
+  "Vatican City": "🇻🇦",
+  "Venezuela": "🇻🇪",
+  "Vietnam": "🇻🇳",
+  "Yemen": "🇾🇪",
+  "Zambia": "🇿🇲",
+  "Zimbabwe": "🇿🇼",
+
+  // Common Abbreviations
+  "USA": "🇺🇸",
+  "UK": "🇬🇧",
+  "UAE": "🇦🇪",
+  "DRC": "🇨🇩",
+  
+  // Territories & Regions
+  "Europe": "🇪🇺",
+  "European Union": "🇪🇺",
+  "England": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+  "Hong Kong": "🇭🇰",
+  "Macau": "🇲🇴",
+  "Puerto Rico": "🇵🇷",
+  "Guam": "🇬🇺",
+  "American Samoa": "🇦🇸",
+  "Northern Mariana Islands": "🇲🇵",
+  "US Virgin Islands": "🇻🇮",
+  "British Virgin Islands": "🇻🇬",
+  "Cayman Islands": "🇰🇾",
+  "Bermuda": "🇧🇲",
+  "Falkland Islands": "🇫🇰",
+  "Gibraltar": "🇬🇮",
+  "Greenland": "🇬🇱",
+  "Faroe Islands": "🇫🇴",
+  "Aruba": "🇦🇼",
+  "Curacao": "🇨🇼",
+  "Sint Maarten": "🇸🇽",
+  "French Guiana": "🇬🇫",
+  "Guadeloupe": "🇬🇵",
+  "Martinique": "🇲🇶",
+  "Reunion": "🇷🇪",
+  "Mayotte": "🇾🇹",
+  "New Caledonia": "🇳🇨",
+  "French Polynesia": "🇵🇫",
+  "Saint Pierre and Miquelon": "🇵🇲",
+  "Wallis and Futuna": "🇼🇫",
+  "Niue": "🇳🇺",
+  "Tokelau": "🇹🇰",
+  "Cook Islands": "🇨🇰",
+  "Saint Helena": "🇸🇭",
+  "Ascension": "🇦🇨",
+  "Tristan da Cunha": "🇹🇦",
+  "Anguilla": "🇦🇮",
+  "Montserrat": "🇲🇸",
+  "Turks and Caicos Islands": "🇹🇨",
+  "Western Sahara": "🇪🇭",
+  "Antarctica": "🇦🇶",
+  
+  // Continents (using globes where flags aren't standard)
+  "Africa": "🌍",
+  "Asia": "🌏",
+  "North America": "🌎",
+  "South America": "🌎",
+  "Oceania": "🌏",
+  "World": "🌍"
+}
+
+function findCountryInText(rawText: string): string[] {
+  const highConfidenceMatches: string[] = []
+  const keywords = ["Account based in", "Based in"]
+
+  // Robust cleanup: normalize ALL whitespace to single space
+  const normalized = rawText
+    .replace(/\\u00[a-fA-F0-9]{2}/g, (match) => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)))
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  // Strategy 1: Exact Match against DB keys
+  if (countryToFlag[normalized]) {
+      return [normalized];
+  }
+  
+  // Strategy 2: Contains Match
+  for (const country of Object.keys(countryToFlag)) {
+      if (normalized.includes(country)) {
+          highConfidenceMatches.push(country)
+      }
+  }
+
+  // Strategy 3: Keyword proximity
+  for (const keyword of keywords) {
+    let pos = normalized.indexOf(keyword)
+    while (pos !== -1) {
+      const snippet = normalized.substring(pos, pos + 150)
+      for (const country of Object.keys(countryToFlag)) {
+        if (snippet.includes(country)) {
+           highConfidenceMatches.push(country)
+        }
+      }
+      pos = normalized.indexOf(keyword, pos + 1)
+    }
+  }
+
+  return highConfidenceMatches.sort((a, b) => b.length - a.length)
+}
 
 const getReplacedLinkCount = () =>
   document.querySelectorAll<HTMLAnchorElement>(
@@ -26,24 +324,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return false
 })
 
-// Function to replace Wikipedia links with Grokipedia links
 function replaceWikipediaLinks(container: Document | Element = document) {
-  // Find all anchor tags
   const links = container.querySelectorAll<HTMLAnchorElement>("a[href]")
 
   links.forEach((link) => {
-    // Skip if already processed
     if (link.dataset[GROKIFIED_ATTR]) return
 
     const href = link.getAttribute("href")
     if (!href) return
 
-    // Skip if it's already a Grokipedia link
     if (href.includes("grokipedia.com")) {
       return
     }
 
-    // Skip anchor-only links (starts with #)
     if (href.startsWith("#")) {
       return
     }
@@ -51,27 +344,22 @@ function replaceWikipediaLinks(container: Document | Element = document) {
     let articleName = ""
     let suffix = ""
 
-    // Check if it's an absolute Wikipedia link (desktop) - English only
     const absoluteMatch = href.match(
       /https?:\/\/en\.wikipedia\.org\/wiki\/([^#?]+)([#?].*)?/
     )
 
-    // Check if it's a mobile Wikipedia link - English only
     const mobileMatch = href.match(
       /https?:\/\/(en\.)?m\.wikipedia\.org\/wiki\/([^#?]+)([#?].*)?/
     )
 
-    // Check if it's the /w/index.php?title= format - English only
     const indexPhpMatch = href.match(
       /https?:\/\/en\.wikipedia\.org\/w\/index\.php\?.*[&?]title=([^&#]+)/
     )
 
-    // Check if it's a relative /w/index.php?title= format
     const relativeIndexPhpMatch = href.match(
       /^\/w\/index\.php\?.*[&?]title=([^&#]+)/
     )
 
-    // Check if it's a relative Wikipedia link (starts with /wiki/)
     const relativeMatch = href.match(/^\/wiki\/([^#?]+)([#?].*)?$/)
 
     if (absoluteMatch) {
@@ -81,7 +369,6 @@ function replaceWikipediaLinks(container: Document | Element = document) {
       articleName = mobileMatch[2]
       suffix = mobileMatch[3] || ""
     } else if (indexPhpMatch) {
-      // Decode the title parameter (it's often URL-encoded)
       articleName = decodeURIComponent(indexPhpMatch[1])
       suffix = ""
     } else if (relativeIndexPhpMatch) {
@@ -92,22 +379,16 @@ function replaceWikipediaLinks(container: Document | Element = document) {
       suffix = relativeMatch[2] || ""
     }
 
-    // Strip Wikipedia query parameters, keep only hash fragments
-    // Extract only the fragment (#section) and discard query params (?oldid=123)
     if (suffix) {
       const hashIndex = suffix.indexOf("#")
       if (hashIndex !== -1) {
-        // Keep everything from # onwards
         suffix = suffix.substring(hashIndex)
       } else if (suffix.startsWith("?")) {
-        // It's only query params, strip them
         suffix = ""
       }
     }
 
-    // If we found a Wikipedia link, replace it
     if (articleName) {
-      // Skip special pages, /w/ paths, and non-article namespaces
       if (
         articleName.startsWith("Special:") ||
         articleName.startsWith("File:") ||
@@ -123,22 +404,17 @@ function replaceWikipediaLinks(container: Document | Element = document) {
         return
       }
 
-      // Properly encode the article name for the URL
-      // Decode first to normalize, then encode to ensure proper format
       const normalizedArticleName = decodeURIComponent(articleName)
       const encodedArticleName = encodeURIComponent(normalizedArticleName)
-        .replace(/%20/g, "_") // Wikipedia uses underscores for spaces
-        .replace(/%2F/g, "/") // Don't encode forward slashes
+        .replace(/%20/g, "_")
+        .replace(/%2F/g, "/")
 
-      // Replace with Grokipedia URL
       const newUrl = `https://grokipedia.com/page/${encodedArticleName}${suffix}`
       link.setAttribute("href", newUrl)
       link.dataset[GROKIFIED_ATTR] = "true"
     }
   })
 }
-
-// --- X (Twitter) Logic ---
 
 function isX() {
   return (
@@ -154,7 +430,6 @@ function getXUsername() {
   if (parts.length === 0) return null
 
   const potentialUsername = parts[0]
-  // List of common reserved words on X
   const reserved = [
     "home",
     "explore",
@@ -174,55 +449,85 @@ function getXUsername() {
   return potentialUsername
 }
 
+function getCsrfToken() {
+    const cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim()
+        if (cookie.startsWith("ct0=")) {
+            return cookie.substring(4)
+        }
+    }
+    return null
+}
+
 async function handleXProfile() {
   if (!isX()) return
 
   const username = getXUsername()
   if (!username) return
 
-  // Try to find the user name element
+  // MEMORY GUARD: If we already successfully processed this user this session, skip
+  // This prevents loop if DOM attribute is cleared or missed
+  if (grokifyProcessedUsers.has(username)) return
+
   const userNameElement = document.querySelector('[data-testid="UserName"]')
   if (!userNameElement) return
 
-  // Check if already processed
+  // DOM GUARD: Check attribute
   if (userNameElement.getAttribute(`data-${GROKIFIED_LOCATION_ATTR}`)) return
 
-  // Mark as processing
+  // Set processing state immediately
   userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "processing")
 
   try {
-    const response = await fetch(
-      `https://${window.location.hostname}/${username}/about`
-    )
-    const text = await response.text()
+    let finalCountry = null
 
-    let foundCountry = null
-    // Search for country name in the response text
-    // Optimization: iterate through keys
-    for (const country of Object.keys(countryToFlag)) {
-      if (text.includes(country)) {
-        foundCountry = country
-        // If we find a "Based in" match, break immediately as it's high confidence
-        if (
-          text.includes(`Based in ${country}`) ||
-          text.includes(`Based in: ${country}`)
-        ) {
-          break
+    // Strategy: Direct GraphQL Fetch for AboutAccountQuery
+    try {
+      const queryId = "XRqGa7EeokUU5kppkh13EA"
+      const variables = { screenName: username }
+      
+      const encodedVariables = encodeURIComponent(JSON.stringify(variables))
+      const graphQLUrl = `https://${window.location.hostname}/i/api/graphql/${queryId}/AboutAccountQuery?variables=${encodedVariables}`
+      
+      const csrfToken = getCsrfToken()
+
+      const response = await fetch(graphQLUrl, {
+        credentials: "include",
+        headers: {
+          "x-twitter-active-user": "yes",
+          "x-csrf-token": csrfToken || "",
+          "authorization": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA" 
         }
+      })
+      
+      if (response.ok) {
+          const data = await response.json()
+          const accountBasedIn = data?.data?.user_result_by_screen_name?.result?.about_profile?.account_based_in
+          
+          if (accountBasedIn) {
+            const matches = findCountryInText(accountBasedIn)
+            if (matches.length > 0) {
+              finalCountry = matches[0]
+            }
+          }
+      } else if (response.status === 429) {
+          // If rate limited, mark as done so we don't hammer it
+          grokifyProcessedUsers.add(username)
+          userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "rate_limited")
+          return 
       }
+      
+    } catch (e) {
+      // Silent fail
     }
 
-    if (foundCountry) {
-      const flag = countryToFlag[foundCountry]
+    if (finalCountry) {
+      const flag = countryToFlag[finalCountry]
       const span = document.createElement("span")
       span.textContent = ` ${flag}`
-      span.title = `Based in ${foundCountry}`
+      span.title = `Based in ${finalCountry}`
       span.style.marginLeft = "4px"
-
-      // Find the name text node to append next to
-      // userNameElement usually has nested divs. We look for the span that holds the name.
-      // The handle (@username) is usually in a separate div below or next to it.
-      // We want the one that DOES NOT start with @
 
       const spans = Array.from(userNameElement.querySelectorAll("span"))
       const nameSpan = spans.find(
@@ -237,27 +542,31 @@ async function handleXProfile() {
       } else {
         userNameElement.appendChild(span)
       }
+      
+      // Mark success in memory
+      grokifyProcessedUsers.add(username)
+      userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "true")
+    } else {
+      // No country found - mark as done to prevent retry loop
+      grokifyProcessedUsers.add(username)
+      userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "no_data")
     }
 
-    userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "true")
   } catch (e) {
-    // console.error("Grokify: Failed to fetch X location", e)
-    // Fail silently or allow retry? For now mark as failed so we don't loop
+    // Mark as failed but processed to prevent loop
+    grokifyProcessedUsers.add(username)
     userNameElement.setAttribute(`data-${GROKIFIED_LOCATION_ATTR}`, "failed")
   }
 }
 
-// Function to check if extension is enabled
 async function isExtensionEnabled(): Promise<boolean> {
   return new Promise((resolve) => {
     chrome.storage.sync.get(["enabled"], (result) => {
-      // Default to true if not set
       resolve(result.enabled !== false)
     })
   })
 }
 
-// Main function to initialize the content script
 async function init() {
   const enabled = await isExtensionEnabled()
 
@@ -265,15 +574,12 @@ async function init() {
     return
   }
 
-  // Replace existing links on page load
   replaceWikipediaLinks()
 
-  // Handle X Profile if applicable
   if (isX()) {
     handleXProfile()
   }
 
-  // Watch for dynamically added links (SPAs, infinite scroll, etc.)
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
@@ -283,22 +589,17 @@ async function init() {
       })
     })
 
-    // Check for X profile updates
     if (isX()) {
       handleXProfile()
     }
   })
 
-  // Start observing the document for changes
   observer.observe(document.body, {
     childList: true,
     subtree: true
   })
-
-  // Listener registered at top-level to ensure popup queries always respond
 }
 
-// Run when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init)
 } else {
