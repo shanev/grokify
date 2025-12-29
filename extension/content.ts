@@ -358,11 +358,16 @@ function replaceWikipediaLinks(container: Document | Element = document) {
       /https?:\/\/en\.wikipedia\.org\/w\/index\.php\?.*[&?]title=([^&#]+)/
     )
 
-    const relativeIndexPhpMatch = href.match(
-      /^\/w\/index\.php\?.*[&?]title=([^&#]+)/
-    )
+    // Only match relative URLs when on Wikipedia domains
+    const isOnWikipedia = window.location.hostname.endsWith("wikipedia.org")
 
-    const relativeMatch = href.match(/^\/wiki\/([^#?]+)([#?].*)?$/)
+    const relativeIndexPhpMatch = isOnWikipedia
+      ? href.match(/^\/w\/index\.php\?.*[&?]title=([^&#]+)/)
+      : null
+
+    const relativeMatch = isOnWikipedia
+      ? href.match(/^\/wiki\/([^#?]+)([#?].*)?$/)
+      : null
 
     if (absoluteMatch) {
       articleName = absoluteMatch[1]
