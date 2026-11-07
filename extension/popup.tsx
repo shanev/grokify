@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react"
+import { SHOW_INDICATORS_KEY } from "./lib/indicators"
 import packageJson from "./package.json"
 
 function IndexPopup() {
   const [enabled, setEnabled] = useState(true)
+  const [showIndicators, setShowIndicators] = useState(true)
   const [linkCount, setLinkCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   // Load initial state from storage
   useEffect(() => {
-    chrome.storage.sync.get(["enabled"], (result) => {
+    chrome.storage.sync.get(["enabled", SHOW_INDICATORS_KEY], (result) => {
       setEnabled(result.enabled !== false) // Default to true
+      setShowIndicators(result[SHOW_INDICATORS_KEY] !== false) // Default to true
       setLoading(false)
     })
 
@@ -44,6 +47,13 @@ function IndexPopup() {
     if (tabs[0]?.id) {
       chrome.tabs.reload(tabs[0].id)
     }
+  }
+
+  // Content scripts pick this up via storage.onChanged, so no reload needed
+  const handleIndicatorsToggle = () => {
+    const next = !showIndicators
+    setShowIndicators(next)
+    chrome.storage.sync.set({ [SHOW_INDICATORS_KEY]: next })
   }
 
   if (loading) {
@@ -92,6 +102,23 @@ function IndexPopup() {
             </div>
             <p style={styles.hint}>on this page</p>
           </div>
+        )}
+
+        {enabled && (
+          <label style={styles.optionRow}>
+            <input
+              type="checkbox"
+              checked={showIndicators}
+              onChange={handleIndicatorsToggle}
+            />
+            <span>
+              Mark replaced links
+              <span style={styles.optionHint}>
+                {" "}
+                (not shown on Wikipedia)
+              </span>
+            </span>
+          </label>
         )}
 
         {!enabled && (
@@ -202,6 +229,19 @@ const styles = {
   },
   hint: {
     margin: "10px 0 0 0",
+    fontSize: "11px",
+    color: "#999"
+  },
+  optionRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "12px",
+    fontSize: "13px",
+    color: "#333",
+    cursor: "pointer"
+  },
+  optionHint: {
     fontSize: "11px",
     color: "#999"
   },
