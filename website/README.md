@@ -1,82 +1,39 @@
-# Grokify Website
+# grokify.app
 
-Simple static landing page for the Grokify browser extension.
-
-## 🌐 Live Site
-
-Coming soon: https://grokify.app
-
-## 🚀 Deployment to Cloudflare Pages
-
-### First Time Setup
-
-1. **Push to GitHub** (if not already done):
-   ```bash
-   git add .
-   git commit -m "Add website"
-   git push origin main
-   ```
-
-2. **Create Cloudflare Pages Project**:
-   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
-   - Select "Workers & Pages" from the sidebar
-   - Click "Create application" → "Pages" → "Connect to Git"
-   - Select your repository: `shanev/grokify`
-   - Configure build settings:
-     - **Production branch**: `main`
-     - **Build output directory**: `website`
-     - **Build command**: (leave empty - it's static HTML)
-     - **Root directory**: `website`
-
-3. **Configure Custom Domain**:
-   - After deployment, go to "Custom domains" tab
-   - Click "Set up a custom domain"
-   - Enter `grokify.app`
-   - Follow DNS configuration instructions (add CNAME record)
-
-### Subsequent Deployments
-
-Every push to `main` will automatically deploy! No build step needed.
-
-## 🛠️ Local Development
-
-Since it's plain HTML, just open `index.html` in your browser:
-
-```bash
-cd website
-open index.html
-```
-
-Or use a simple HTTP server:
-
-```bash
-# Python
-python3 -m http.server 8000
-
-# Node.js (npx)
-npx serve
-
-# PHP
-php -S localhost:8000
-```
-
-Then visit http://localhost:8000
-
-## 📁 Structure
+The landing site for the Grokify extension: plain HTML and CSS, no build step.
+Cloudflare Pages deploys this folder on every push to `main`.
 
 ```
 website/
-├── index.html       # Main landing page
+├── index.html               Landing page
+├── privacy.html             Privacy policy
+├── grokify-extension.zip    Direct download (updated by `bun run release`)
 ├── assets/
-│   └── icon.png    # Grokify logo
-└── README.md       # This file
+│   ├── icon.png             Logo / favicon
+│   ├── og.png               Social share card (1200×630)
+│   ├── greg1.png            X flag example (also used in the repo README)
+│   └── shots/               Product screenshots (WebP)
+├── robots.txt
+└── sitemap.xml
 ```
 
-## ✨ Features
+## Screenshots
 
-- Single HTML file (no build step!)
-- Responsive design
-- Dark theme matching Grokipedia
-- Fast load times
-- SEO optimized with meta tags
-- Open Graph tags for social sharing
+The images in `assets/shots/` and `assets/og.png` are captured from the real
+extension build, so they stay accurate. To refresh them after a UI change:
+
+```bash
+cd extension
+pnpm build
+node scripts/website-screenshots.mjs
+```
+
+The demo article and share-card templates live in
+`extension/scripts/screenshot-pages/`. The site's copy mentions the badge count
+(8) and tooltip text that the script prints; update `index.html` if they change.
+
+## Local preview
+
+```bash
+cd website && python3 -m http.server 8000   # http://localhost:8000
+```
