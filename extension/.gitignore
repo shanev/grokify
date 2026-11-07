@@ -34,3 +34,7 @@ dist/
 
 # distribution
 *.zip
+
+# playwright
+/test-results
+/playwright-report
