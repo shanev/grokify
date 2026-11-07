@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+    body { background: #f3efe6; color: #161512; font-family: "Instrument Serif", Georgia, serif; position: relative; }
+    .brand { position: absolute; left: 72px; top: 60px; display: flex; align-items: center; gap: 14px; font-size: 38px; }
+    .brand img { width: 46px; height: 46px; border-radius: 10px; }
+    h1 { position: absolute; left: 72px; top: 170px; margin: 0; font-weight: 400; font-size: 112px; line-height: 0.98; letter-spacing: -0.025em; width: 640px; }
+    h1 em { font-style: italic; }
+    .proof { position: relative; display: inline-block; padding-top: 0.5em; }
+    .old { position: relative; }
+    .old::after { content: ""; position: absolute; left: -3%; right: -3%; top: 54%; height: 0.07em; background: #cf3a1f; border-radius: 1em; transform: rotate(-2.5deg); }
+    .new { position: absolute; left: 50%; top: 0.1em; transform: translateX(-50%) rotate(-3deg); color: #cf3a1f; font-style: italic; font-size: 0.52em; white-space: nowrap; }
+    .foot { position: absolute; left: 72px; bottom: 56px; font: 500 20px/1 "Geist Mono", monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #77705f; }
+    .foot b { color: #cf3a1f; font-weight: 500; }
+    .shot { position: absolute; left: 760px; top: 88px; width: 620px; border-radius: 14px; overflow: hidden; transform: rotate(-3deg);
+            box-shadow: 0 0 0 1px rgba(22,21,18,0.12), 0 40px 70px -30px rgba(22,21,18,0.55); background: #fff; }
+    .bar { height: 30px; background: #ecebe8; border-bottom: 1px solid #dedcd6; display: flex; align-items: center; gap: 7px; padding: 0 12px; }
+    .bar i { width: 10px; height: 10px; border-radius: 50%; background: #d1cfc9; }
+    .shot img { display: block; width: 900px; margin-left: -150px; margin-top: -250px; }
+  </style>
+</head>
+<body>
+  <div class="brand"><img src="../../../website/assets/icon.png" alt="">Grokify</div>
+  <h1>Every <span class="proof"><span class="old">Wikipedia</span><span class="new">Grokipedia</span></span> link, <em>rewritten.</em></h1>
+  <div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="../../../website/assets/shots/article.webp" alt=""></div>
+  <div class="foot"><b>grokify.app</b> &nbsp;·&nbsp; free chrome extension</div>
+</body>
+</html>
