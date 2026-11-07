@@ -6,6 +6,10 @@
     <style>
       body { font: 18px/1.6 Georgia, serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
       a { color: #0645ad; }
+      /* Hostile site styles, modeled on gwern.net: inherited text tweaks plus
+         a high-specificity ::after rule of the site's own */
+      #hostile { text-shadow: 0 1px #fff, 1px 1px #fff, -1px 1px #fff; letter-spacing: 4px; text-transform: lowercase; }
+      #hostile-link::after { content: "x"; color: transparent; background: none; width: 0; overflow: hidden; display: none; }
     </style>
   </head>
   <body>
@@ -23,6 +27,9 @@
           src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23999'/%3E%3C/svg%3E"
       /></a>
       <a id="unrelated" href="https://example.com/about">An unrelated link</a>
+    </p>
+    <p id="hostile">
+      <a id="hostile-link" href="https://en.wikipedia.org/wiki/Turing_completeness">Turing completeness</a>
     </p>
     <ul id="feed"></ul>
   </body>

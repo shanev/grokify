@@ -65,12 +65,34 @@ test.describe("on a non-Wikipedia site", () => {
     })
   })
 
+  test("marker survives hostile site styles", async ({ page }) => {
+    const style = await page.locator("#hostile-link").evaluate((el) => {
+      const cs = getComputedStyle(el, "::after")
+      return {
+        content: cs.content,
+        display: cs.display,
+        color: cs.color,
+        textShadow: cs.textShadow,
+        letterSpacing: cs.letterSpacing,
+        textTransform: cs.textTransform
+      }
+    })
+    expect(style).toEqual({
+      content: '"G"',
+      display: "inline-block",
+      color: "rgb(255, 255, 255)",
+      textShadow: "none",
+      letterSpacing: "normal",
+      textTransform: "none"
+    })
+  })
+
   test("shows the replaced-link count on the badge", async ({
     serviceWorker
   }) => {
     await expect
       .poll(() => getBadgeText(serviceWorker, FIXTURE_URLS.blog))
-      .toBe("4")
+      .toBe("5")
   })
 
   test("handles links added after load", async ({ page, serviceWorker }) => {
@@ -91,7 +113,7 @@ test.describe("on a non-Wikipedia site", () => {
     expect(await markerContent(page, "a.late >> nth=0")).toBe('"G"')
     await expect
       .poll(() => getBadgeText(serviceWorker, FIXTURE_URLS.blog))
-      .toBe("6")
+      .toBe("7")
   })
 
   test("popup toggle hides and restores markers without a reload", async ({

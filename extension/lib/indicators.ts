@@ -7,20 +7,38 @@ export const SHOW_INDICATORS_KEY = "showIndicators"
 
 // CSS-only marker: adds no DOM nodes, so it never re-triggers the
 // MutationObserver. Links wrapping media (thumbnails, logos) are skipped.
+// Every declaration is !important and inherited text styles are reset, since
+// host pages style links aggressively (e.g. gwern.net's white text-shadow
+// underline trick otherwise buries the "G").
 export const INDICATOR_CSS = `
 a[data-grokified="true"]:not(:has(img, svg, picture, video))::after {
-  content: "G";
-  display: inline-block;
-  margin-left: 0.15em;
-  padding: 0 0.25em;
-  border-radius: 0.3em;
-  font: 700 0.6em/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
-  vertical-align: super;
-  text-decoration: none;
-  color: #fff;
-  background: #1a1a1a;
-  opacity: 0.75;
-  pointer-events: none;
+  content: "G" !important;
+  display: inline-block !important;
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 0 0 0.15em !important;
+  padding: 0 0.25em !important;
+  border: 0 !important;
+  border-radius: 0.3em !important;
+  font: 700 0.6em/1.4 system-ui, -apple-system, "Segoe UI", sans-serif !important;
+  font-variant: normal !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  text-indent: 0 !important;
+  text-shadow: none !important;
+  text-decoration: none !important;
+  vertical-align: super !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: #1a1a1a !important;
+  opacity: 0.75 !important;
+  filter: none !important;
+  mask: none !important;
+  -webkit-mask: none !important;
+  transform: none !important;
+  visibility: visible !important;
+  pointer-events: none !important;
 }
 `
 
