@@ -25,6 +25,9 @@
 - [x] Grokipedia logo/branding
 - [x] Statistics display (link count)
 - [x] Immediate visual feedback (page refresh on toggle)
+- [x] Toolbar badge with replaced-link count
+- [x] Tooltip on replaced links showing the original Wikipedia URL
+- [x] Optional inline "G" marker on replaced links (off on Wikipedia itself)
 
 ## 🚀 Future Enhancements
 

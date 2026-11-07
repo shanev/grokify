@@ -1,5 +1,15 @@
 import type { PlasmoCSConfig } from "plasmo"
 
+import {
+  buildLinkTitle,
+  INDICATOR_CSS,
+  INDICATOR_STYLE_ID,
+  isWikipediaHost,
+  ORIGINAL_HREF_ATTR,
+  SHOW_INDICATORS_KEY,
+  shouldShowInlineIndicators
+} from "./lib/indicators"
+
 export const config: PlasmoCSConfig = {
   matches: ["https://*/*"],
   all_frames: true
@@ -40,7 +50,7 @@ const countryToFlag: Record<string, string> = {
   "Brazil": "🇧🇷",
   "Brunei": "🇧🇳",
   "Bulgaria": "🇧🇬",
-  "Burkina Faso": "🇧4",
+  "Burkina Faso": "🇧🇫",
   "Burundi": "🇧🇮",
   "Cabo Verde": "🇨🇻",
   "Cambodia": "🇰🇭",
@@ -359,7 +369,7 @@ function replaceWikipediaLinks(container: Document | Element = document) {
     )
 
     // Only match relative URLs when on Wikipedia domains
-    const isOnWikipedia = window.location.hostname.endsWith("wikipedia.org")
+    const isOnWikipedia = isWikipediaHost(window.location.hostname)
 
     const relativeIndexPhpMatch = isOnWikipedia
       ? href.match(/^\/w\/index\.php\?.*[&?]title=([^&#]+)/)
@@ -417,7 +427,11 @@ function replaceWikipediaLinks(container: Document | Element = document) {
         .replace(/%2F/g, "/")
 
       const newUrl = `https://grokipedia.com/page/${encodedArticleName}${suffix}`
+      // link.href is the resolved absolute URL, unlike the raw attribute
+      const originalHref = link.href
       link.setAttribute("href", newUrl)
+      link.setAttribute(`data-${ORIGINAL_HREF_ATTR}`, originalHref)
+      link.title = buildLinkTitle(link.getAttribute("title"), originalHref)
       link.dataset[GROKIFIED_ATTR] = "true"
     }
   })
@@ -564,22 +578,87 @@ async function handleXProfile() {
   }
 }
 
-async function isExtensionEnabled(): Promise<boolean> {
+function getSettings(): Promise<{ enabled: boolean; showIndicators: unknown }> {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(["enabled"], (result) => {
-      resolve(result.enabled !== false)
+    chrome.storage.sync.get(["enabled", SHOW_INDICATORS_KEY], (result) => {
+      resolve({
+        enabled: result.enabled !== false,
+        showIndicators: result[SHOW_INDICATORS_KEY]
+      })
     })
   })
 }
 
+function setInlineIndicators(show: boolean) {
+  const existing = document.getElementById(INDICATOR_STYLE_ID)
+  if (!show) {
+    existing?.remove()
+    return
+  }
+  if (existing) return
+
+  const style = document.createElement("style")
+  style.id = INDICATOR_STYLE_ID
+  style.textContent = INDICATOR_CSS
+  ;(document.head || document.documentElement).appendChild(style)
+}
+
+const BADGE_UPDATE_DELAY_MS = 500
+let lastBadgeKey = ""
+let badgeUpdateTimer: ReturnType<typeof setTimeout> | null = null
+
+function sendBadgeCount(count: number) {
+  // Only the top frame reports, matching the popup's per-page count
+  if (window.top !== window) return
+
+  // Keyed on URL too, so SPA navigations re-send even if the count matches
+  const key = `${window.location.href}|${count}`
+  if (key === lastBadgeKey) return
+  lastBadgeKey = key
+
+  try {
+    chrome.runtime
+      .sendMessage({ action: "updateBadge", count })
+      .catch(() => {
+        // Background not reachable (e.g. extension reloaded); ignore
+      })
+  } catch {
+    // Extension context invalidated; ignore
+  }
+}
+
+function scheduleBadgeUpdate() {
+  if (badgeUpdateTimer !== null) return
+  badgeUpdateTimer = setTimeout(() => {
+    badgeUpdateTimer = null
+    sendBadgeCount(getReplacedLinkCount())
+  }, BADGE_UPDATE_DELAY_MS)
+}
+
 async function init() {
-  const enabled = await isExtensionEnabled()
+  const { enabled, showIndicators } = await getSettings()
 
   if (!enabled) {
+    sendBadgeCount(0)
     return
   }
 
+  const hostname = window.location.hostname
+  setInlineIndicators(shouldShowInlineIndicators(hostname, showIndicators))
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "sync" && SHOW_INDICATORS_KEY in changes) {
+      setInlineIndicators(
+        shouldShowInlineIndicators(
+          hostname,
+          changes[SHOW_INDICATORS_KEY].newValue
+        )
+      )
+    }
+  })
+
   replaceWikipediaLinks()
+  sendBadgeCount(getReplacedLinkCount())
 
   if (isX()) {
     handleXProfile()
@@ -593,6 +672,8 @@ async function init() {
         }
       })
     })
+
+    scheduleBadgeUpdate()
 
     if (isX()) {
       handleXProfile()

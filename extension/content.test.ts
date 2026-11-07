@@ -1,4 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
+import {
+  buildLinkTitle,
+  describeOriginalHref,
+  formatBadgeText,
+  isWikipediaHost,
+  shouldShowInlineIndicators
+} from "./lib/indicators"
 
 // Extract the URL matching logic for testing
 interface MatchResult {
@@ -225,6 +232,74 @@ describe("matchWikipediaUrl", () => {
         "example.com"
       )
       expect(result).toBeNull()
+    })
+  })
+})
+
+describe("link indicators", () => {
+  describe("isWikipediaHost", () => {
+    it("matches wikipedia.org and its subdomains", () => {
+      expect(isWikipediaHost("en.wikipedia.org")).toBe(true)
+      expect(isWikipediaHost("en.m.wikipedia.org")).toBe(true)
+      expect(isWikipediaHost("wikipedia.org")).toBe(true)
+    })
+
+    it("does not match lookalike domains", () => {
+      expect(isWikipediaHost("notwikipedia.org")).toBe(false)
+      expect(isWikipediaHost("example.com")).toBe(false)
+    })
+  })
+
+  describe("shouldShowInlineIndicators", () => {
+    it("defaults to on for non-Wikipedia sites", () => {
+      expect(shouldShowInlineIndicators("reddit.com", undefined)).toBe(true)
+    })
+
+    it("is off when the user disables it", () => {
+      expect(shouldShowInlineIndicators("reddit.com", false)).toBe(false)
+    })
+
+    it("is always off on Wikipedia", () => {
+      expect(shouldShowInlineIndicators("en.wikipedia.org", true)).toBe(false)
+      expect(shouldShowInlineIndicators("en.wikipedia.org", undefined)).toBe(false)
+    })
+  })
+
+  describe("buildLinkTitle", () => {
+    const original = "https://en.wikipedia.org/wiki/S%C3%A3o_Paulo"
+
+    it("creates a title when none exists", () => {
+      expect(buildLinkTitle(null, original)).toBe(
+        "Grokify: opens on Grokipedia (was en.wikipedia.org/wiki/São_Paulo)"
+      )
+    })
+
+    it("appends to an existing title instead of replacing it", () => {
+      expect(buildLinkTitle("São Paulo", original)).toBe(
+        "São Paulo\nGrokify: opens on Grokipedia (was en.wikipedia.org/wiki/São_Paulo)"
+      )
+    })
+  })
+
+  describe("describeOriginalHref", () => {
+    it("falls back to the raw URL when decoding fails", () => {
+      expect(describeOriginalHref("https://en.wikipedia.org/wiki/100%_bad")).toBe(
+        "en.wikipedia.org/wiki/100%_bad"
+      )
+    })
+  })
+
+  describe("formatBadgeText", () => {
+    it("hides the badge at zero", () => {
+      expect(formatBadgeText(0)).toBe("")
+    })
+
+    it("shows the count", () => {
+      expect(formatBadgeText(42)).toBe("42")
+    })
+
+    it("caps large counts", () => {
+      expect(formatBadgeText(1500)).toBe("999+")
     })
   })
 })
