@@ -43,3 +43,9 @@ If you want to build the extension from source:
     ```bash
     bun run build
     ```
+4.  **Tests:**
+    ```bash
+    bun run test       # unit tests
+    bun run test:e2e   # builds, then runs Playwright against the real extension
+    ```
+5.  **Releasing:** `bun run release minor` (see [extension/RELEASING.md](extension/RELEASING.md)).
