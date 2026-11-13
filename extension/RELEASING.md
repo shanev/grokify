@@ -53,9 +53,11 @@ Google token scoped to the Web Store. No keys are stored in GitHub.
    gh variable set CWS_PUBLISHER_ID --repo shanev/grokify --env chrome-web-store --body <id>
    ```
 
-Optional: add yourself as a required reviewer on the `chrome-web-store`
-environment (repo **Settings > Environments**) to approve each store
-submission by hand.
+Add yourself as a required reviewer on the `chrome-web-store` environment
+(repo **Settings > Environments**) to approve each store submission by hand.
+(shanev/grokify already has this: shanev is the required reviewer, with admin
+bypass on while the repo is solo-maintained; turn the bypass off when a
+non-releasing collaborator joins.)
 
 ### Environment variables (`chrome-web-store`)
 
